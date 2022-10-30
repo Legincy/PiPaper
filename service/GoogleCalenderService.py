@@ -1,11 +1,14 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+import datetime
 import os
-from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
-import datetime
+from googleapiclient.errors import HttpError
+import logging
 
 class GoogleCalendarService:
     def __init__(self, env):
@@ -15,6 +18,17 @@ class GoogleCalendarService:
         self.__GOOGLE_API_SCOPES =  [self.__GOOGLE_API_SOURCE + scope for scope in self.__EXTRACTED_SCOPES ]
         self.__APP_CONFIG_PATH = self.ENV["APP_CONFIG_PATH"]
         self.__user_credentials = None
+        self.__data_cache = []
+
+        self.init_user_credentials()
+        self.update()
+
+
+    def __set_data_cache(self, data):
+        self.__data_cache = data
+
+    def get_data_cache(self):
+        return self.__data_cache
 
     def init_user_credentials(self):
         token_path = self.__APP_CONFIG_PATH + 'token.json'
@@ -33,26 +47,20 @@ class GoogleCalendarService:
             with open(token_path, 'w') as token:
                 token.write(self.__user_credentials.to_json())
 
-    def main(self):
-        self.init_user_credentials()
-
+    def update(self):
         try:
             service = build('calendar', 'v3', credentials=self.__user_credentials)
             now = datetime.datetime.utcnow().isoformat() + 'Z'
-
-            print('Getting the upcoming 10 events')
             events_result = service.events().list(calendarId='primary', timeMin=now,
                                                 maxResults=10, singleEvents=True,
                                                 orderBy='startTime').execute()
-            events = events_result.get('items', [])
+            self.__set_data_cache(events_result.get('items', []))
 
-            if not events:
-                print('No upcoming events found.')
+            if not self.__data_cache:
+                logging.info('No upcoming events found from Google-Calendar.')
                 return
 
-            for event in events:
-                start = event['start'].get('dateTime', event['start'].get('date'))
-                print(start, event)
-
         except HttpError as error:
-            print('An error occurred: %s' % error)
+            logging.error(f"Error while fetching events from Google-Calendar --- {error}")
+
+    data_cache = property(get_data_cache)
