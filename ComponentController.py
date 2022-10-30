@@ -104,11 +104,11 @@ class ComponentController:
         content_dict_height = ascent+descent
         content_dict_width = cursor.textlength(content_dict, font)
 
-        is_overflowing = content_dict_width > self._resolution_dict["height"]-self._padding_side*2
+        is_overflowing = content_dict_width > content_width-self._padding_side*2
         if(is_overflowing):
             while(is_overflowing):
                 content_dict = content_dict.rsplit(' ', 1)[0]
-                is_overflowing = cursor.textlength(content_dict, font) > self._resolution_dict["height"]
+                is_overflowing = cursor.textlength(content_dict, font) > content_width
             content_dict = content_dict[:-3] + "..."
             content_dict_width = cursor.textlength(content_dict, font)
 
