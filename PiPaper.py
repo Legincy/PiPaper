@@ -6,13 +6,14 @@ import logging as log
 import os
 import time
 from datetime import datetime
+
 import schedule
+from ComponentController import ComponentController
 from dotenv import dotenv_values
+#from lib.epd2in7 import EPD
 from PIL import Image, ImageDraw, ImageFont
-from lib.epd2in7 import EPD
 from service.GoogleCalenderService import GoogleCalendarService
 from service.WeatherService import WeatherService
-from ComponentController import ComponentController
 
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 font_dir = os.path.join(static_dir, "fonts")
@@ -24,7 +25,7 @@ class PiPaper:
         self.__APP_LOCALE = self.ENV["APP_LOCALE"]
         self.__LOG_FILE = self.ENV["LOG_FILE"]
         self.__LOG_LEVEL = self.ENV["LOG_LEVEL"]
-        self.__epd = EPD()
+        #self.__epd = EPD()
         self.weather_service = WeatherService(self.ENV)
         self.calendar_service = GoogleCalendarService(self.ENV)
         self.component_controller = ComponentController({"width": self.__epd.width, "height": self.__epd.height}, icon_dir, font_dir)
